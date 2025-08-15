@@ -3,400 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Livros de Castro - Sistema de Leitura</title>
+    <title>Teste PDF - Livros de Castro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        .book-page { 
-            background: linear-gradient(145deg, #f9f9f9 0%, #ffffff 100%);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-        .protected-content {
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-        .no-print { -webkit-print-color-adjust: exact; }
-        @media print { .no-print { display: none !important; } }
-    </style>
 </head>
-<body class="bg-gray-100">
-
-    <!-- Tela de Login -->
-    <div id="loginScreen" class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-            <div class="text-center mb-8">
-                <div class="flex items-center justify-center mb-4">
-                    <i data-lucide="book-open" class="h-12 w-12 text-blue-600 mr-2"></i>
-                    <i data-lucide="github" class="h-10 w-10 text-gray-700"></i>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-900 mb-2">Livros de Castro</h1>
-                <p class="text-gray-600">Sistema de leitura protegida - Repositório: Livros_de_Castro</p>
-            </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Código do Livro
-                    </label>
-                    <input
-                        type="text"
-                        id="bookCode"
-                        placeholder="CASTRO001"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg uppercase"
-                    />
-                </div>
-                
-                <button
-                    onclick="openBook()"
-                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-                >
-                    <i data-lucide="book-open" class="h-4 w-4 mr-2"></i>
-                    Abrir Livro
-                </button>
-            </div>
-            
-            <div class="mt-6">
-                <div class="p-4 bg-blue-50 rounded-md">
-                    <p class="text-sm text-blue-800 font-medium mb-3 text-center">📚 Livros Disponíveis</p>
-                    <div class="space-y-2" id="booksList">
-                        <!-- Livros serão inseridos via JavaScript -->
-                    </div>
-                </div>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-center">Teste de Carregamento PDF</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">Selecione um livro para teste:</h2>
+            <div class="grid grid-cols-2 gap-4" id="bookGrid">
+                <!-- Livros serão inseridos aqui -->
             </div>
         </div>
-    </div>
-
-    <!-- Tela do Leitor -->
-    <div id="readerScreen" class="min-h-screen bg-gray-900 flex-col hidden">
-        <header class="bg-gray-800 border-b border-gray-700">
-            <div class="px-4 py-3">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <button onclick="backToLogin()" class="text-gray-300 hover:text-white">
-                            <i data-lucide="chevron-left" class="h-5 w-5"></i>
-                        </button>
-                        <div class="flex items-center">
-                            <i data-lucide="lock" class="h-4 w-4 text-green-400 mr-2"></i>
-                            <span class="text-white font-medium" id="bookTitle">Carregando...</span>
-                            <span class="text-gray-400 text-sm ml-2" id="bookCodeHeader">(...)</span>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center space-x-2 bg-gray-700 rounded px-3 py-1">
-                            <button onclick="changeZoom(-10)" class="text-gray-300 hover:text-white">
-                                <i data-lucide="zoom-out" class="h-4 w-4"></i>
-                            </button>
-                            <span class="text-white text-xs px-2" id="zoomLevel">100%</span>
-                            <button onclick="changeZoom(10)" class="text-gray-300 hover:text-white">
-                                <i data-lucide="zoom-in" class="h-4 w-4"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="text-xs text-gray-400 text-right">
-                            <div>Sessão protegida</div>
-                            <div id="sessionTimer">3h 0min</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
         
-        <main class="flex-1 flex">
-            <div class="flex-1 flex items-center justify-center p-4 bg-gray-800">
-                <!-- Loading indicator -->
-                <div id="loadingIndicator" class="text-white text-center hidden">
-                    <div class="animate-spin h-8 w-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
-                    <p>Carregando livro...</p>
-                </div>
-                
-                <!-- PDF Canvas Container -->
-                <div class="book-page protected-content relative" id="pdfContainer" style="transform: scale(1); max-width: 90%; max-height: 90%; overflow: hidden;">
-                    <canvas id="pdfCanvas" class="shadow-lg"></canvas>
-                    
-                    <!-- Overlay de proteção -->
-                    <div class="absolute inset-0 bg-transparent"></div>
-                    
-                    <!-- Info overlay -->
-                    <div class="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-2 rounded text-sm">
-                        <div id="pageInfo">Página 1 de 245</div>
-                        <div class="text-xs opacity-75">Livros de Castro - <span id="bookCodeOverlay">---</span></div>
-                    </div>
-                    
-                    <!-- Protection watermark -->
-                    <div class="absolute bottom-4 right-4 bg-red-500 bg-opacity-20 text-red-200 px-2 py-1 rounded text-xs">
-                        🔒 Protegido - Sessão: <span id="sessionWatermark">3h 0min</span>
-                    </div>
-                </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold mb-4">Log de Debug:</h3>
+            <div id="debugLog" class="bg-gray-100 p-4 rounded h-40 overflow-y-auto font-mono text-sm">
+                Aguardando teste...
             </div>
-            
-            <div class="w-16 bg-gray-800 border-l border-gray-700 flex flex-col items-center py-4 space-y-4">
-                <button onclick="previousPage()" id="prevButton" class="text-gray-300 hover:text-white p-2 rounded">
-                    <i data-lucide="chevron-left" class="h-5 w-5"></i>
-                </button>
-                
-                <div class="text-white text-xs text-center" id="pageNavigation">
-                    <span id="currentPage">1</span><br/>de<br/><span id="totalPages">245</span>
-                </div>
-                
-                <button onclick="nextPage()" id="nextButton" class="text-gray-300 hover:text-white p-2 rounded">
-                    <i data-lucide="chevron-right" class="h-5 w-5"></i>
-                </button>
-            </div>
-        </main>
+        </div>
         
-        <div class="bg-gray-800 border-t border-gray-700 px-4 py-2 no-print">
-            <div class="flex items-center justify-center space-x-4 text-xs text-gray-400">
-                <span>🔐 Repositório: Livros_de_Castro</span>
-                <span>•</span>
-                <span>📱 Livro: <span id="footerBookCode">---</span></span>
-                <span>•</span>
-                <span>⏱️ Auto-logout em <span id="footerTimer">3h 0min</span></span>
-            </div>
+        <div id="pdfViewer" class="mt-6 hidden">
+            <canvas id="pdfCanvas" class="border shadow-lg mx-auto"></canvas>
         </div>
     </div>
 
     <script>
-        // Base de dados dos livros
-        const bookDatabase = {
-            'CASTRO001': { title: 'Poemas', pages: 120, file: 'Livros/Poemas.pdf' },
-            'CASTRO002': { title: 'Palavras que Libertam', pages: 89, file: 'Livros/Palavras-que-Libertam.pdf' },
-            'CASTRO003': { title: 'O Pentateuco', pages: 345, file: 'Livros/O-Pentateuco.pdf' },
-            'CASTRO004': { title: 'O Poder da Inteligência Artificial', pages: 198, file: 'Livros/O-Poder-da-Inteligencia-Artificial.pdf' },
-            'CASTRO005': { title: 'Os Caminhos do Coração', pages: 156, file: 'Livros/Os-Caminhos-do-Coracao.pdf' },
-            'CASTRO006': { title: 'Mentores Espirituais', pages: 203, file: 'Livros/Mentores-Espirituais.pdf' },
-            'CASTRO007': { title: 'Elara, e as Conexões Para a Liberdade', pages: 267, file: 'Livros/Elara-e-as-Conexoes-Para-a-Liberdade.pdf' },
-            'CASTRO008': { title: 'O Bem e o Mal', pages: 134, file: 'Livros/O-Bem-e-o-Mal.pdf' }
-        };
-
-        let currentBook = null;
-        let currentPage = 1;
-        let zoom = 100;
-        let sessionTime = 180; // 3 horas em minutos
-        let pdfDoc = null;
-        let canvas = null;
-        let ctx = null;
-        
         // Configurar PDF.js
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        // Base de dados dos livros para teste
+        const bookDatabase = {
+            'CASTRO001': { title: 'Poemas', file: 'Livros/CASTRO001.pdf' },
+            'CASTRO002': { title: 'Palavras que Libertam', file: 'Livros/CASTRO002.pdf' },
+            'CASTRO003': { title: 'O Pentateuco', file: 'Livros/CASTRO003.pdf' },
+            'CASTRO004': { title: 'O Poder da Inteligência Artificial', file: 'Livros/CASTRO004.pdf' },
+            'CASTRO005': { title: 'Os Caminhos do Coração', file: 'Livros/CASTRO005.pdf' },
+            'CASTRO006': { title: 'Mentores Espirituais', file: 'Livros/CASTRO006.pdf' },
+            'CASTRO007': { title: 'Elara, e as Conexões Para a Liberdade', file: 'Livros/CASTRO007.pdf' },
+            'CASTRO008': { title: 'O Bem e o Mal', file: 'Livros/CASTRO008.pdf' }
+        };
 
-        // Inicializar página
-        document.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
-            loadBooksList();
-            startSessionTimer();
-            
-            // Inicializar canvas
-            canvas = document.getElementById('pdfCanvas');
-            ctx = canvas.getContext('2d');
-            
-            // Proteção contra cópia
-            document.addEventListener('contextmenu', e => e.preventDefault());
-            document.addEventListener('selectstart', e => e.preventDefault());
-            document.addEventListener('dragstart', e => e.preventDefault());
-        });
+        function log(message) {
+            const debugLog = document.getElementById('debugLog');
+            const time = new Date().toLocaleTimeString();
+            debugLog.innerHTML += `[${time}] ${message}\n`;
+            debugLog.scrollTop = debugLog.scrollHeight;
+            console.log(message);
+        }
 
-        // Carregar lista de livros
-        function loadBooksList() {
-            const booksList = document.getElementById('booksList');
-            booksList.innerHTML = '';
+        // Criar botões de teste
+        function createBookButtons() {
+            const bookGrid = document.getElementById('bookGrid');
             
             Object.entries(bookDatabase).forEach(([code, book]) => {
-                const bookDiv = document.createElement('div');
-                bookDiv.className = 'flex flex-col bg-white p-3 rounded border cursor-pointer hover:bg-gray-50';
-                bookDiv.onclick = () => {
-                    document.getElementById('bookCode').value = code;
-                    openBook();
-                };
-                
-                bookDiv.innerHTML = `
-                    <div class="font-medium text-blue-900">${code}</div>
-                    <div class="text-sm text-blue-700">${book.title}</div>
-                    <div class="text-xs text-blue-600">${book.pages} páginas</div>
-                `;
-                
-                booksList.appendChild(bookDiv);
+                const button = document.createElement('button');
+                button.className = 'bg-blue-500 hover:bg-blue-600 text-white p-3 rounded text-sm';
+                button.innerHTML = `<div class="font-bold">${code}</div><div class="text-xs">${book.title}</div>`;
+                button.onclick = () => testPDF(code, book);
+                bookGrid.appendChild(button);
             });
         }
 
-        // Carregar PDF
-        async function loadPDF(pdfPath) {
-            try {
-                document.getElementById('loadingIndicator').classList.remove('hidden');
-                document.getElementById('pdfContainer').classList.add('hidden');
-                
-                const loadingTask = pdfjsLib.getDocument(pdfPath);
-                pdfDoc = await loadingTask.promise;
-                
-                document.getElementById('loadingIndicator').classList.add('hidden');
-                document.getElementById('pdfContainer').classList.remove('hidden');
-                
-                // Atualizar número real de páginas
-                currentBook.pages = pdfDoc.numPages;
-                document.getElementById('totalPages').textContent = currentBook.pages;
-                
-                renderPage(currentPage);
-                return true;
-            } catch (error) {
-                console.error('Erro ao carregar PDF:', error);
-                document.getElementById('loadingIndicator').classList.add('hidden');
-                alert('Erro ao carregar o livro. Verifique se o arquivo PDF existe no repositório.');
-                return false;
-            }
-        }
-
-        // Renderizar página do PDF
-        async function renderPage(pageNum) {
-            if (!pdfDoc) return;
+        // Testar carregamento de PDF
+        async function testPDF(code, book) {
+            log(`🔍 Testando: ${code} - ${book.title}`);
+            log(`📂 Caminho: ${book.file}`);
+            
+            // Construir URL absoluta
+            const baseUrl = window.location.origin || 'https://luizdecaxtro.github.io';
+            const repoPath = '/Livros_de_Castro';
+            const fullUrl = `${baseUrl}${repoPath}/${book.file}`;
+            
+            log(`🔗 URL completa: ${fullUrl}`);
             
             try {
-                const page = await pdfDoc.getPage(pageNum);
-                const viewport = page.getViewport({ scale: zoom / 100 });
+                // Testar se arquivo existe
+                log('⏳ Verificando se arquivo existe...');
+                const response = await fetch(fullUrl, { method: 'HEAD' });
+                log(`📊 Status HTTP: ${response.status} (${response.statusText})`);
+                
+                if (!response.ok) {
+                    log(`❌ ERRO: Arquivo não encontrado - Status ${response.status}`);
+                    
+                    // Testar URLs alternativas
+                    const altUrl1 = `${baseUrl}${repoPath}/Livros/${code}.pdf`;
+                    const altUrl2 = `${baseUrl}${repoPath}/${code}.pdf`;
+                    
+                    log(`🔄 Testando URL alternativa 1: ${altUrl1}`);
+                    const altResponse1 = await fetch(altUrl1, { method: 'HEAD' });
+                    log(`📊 Status alternativa 1: ${altResponse1.status}`);
+                    
+                    if (!altResponse1.ok) {
+                        log(`🔄 Testando URL alternativa 2: ${altUrl2}`);
+                        const altResponse2 = await fetch(altUrl2, { method: 'HEAD' });
+                        log(`📊 Status alternativa 2: ${altResponse2.status}`);
+                    }
+                    
+                    return;
+                }
+                
+                log('✅ Arquivo encontrado! Tentando carregar PDF...');
+                
+                // Tentar carregar com PDF.js
+                const loadingTask = pdfjsLib.getDocument(book.file);
+                const pdf = await loadingTask.promise;
+                
+                log(`✅ PDF carregado com sucesso!`);
+                log(`📄 Número de páginas: ${pdf.numPages}`);
+                
+                // Renderizar primeira página
+                const page = await pdf.getPage(1);
+                const viewport = page.getViewport({ scale: 1.0 });
+                
+                const canvas = document.getElementById('pdfCanvas');
+                const ctx = canvas.getContext('2d');
                 
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
                 
-                // Limpar canvas
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Renderizar página
-                const renderContext = {
+                await page.render({
                     canvasContext: ctx,
                     viewport: viewport
-                };
+                }).promise;
                 
-                await page.render(renderContext).promise;
-                updatePageInfo();
+                document.getElementById('pdfViewer').classList.remove('hidden');
+                log('🎉 PDF renderizado com sucesso!');
                 
             } catch (error) {
-                console.error('Erro ao renderizar página:', error);
+                log(`❌ ERRO: ${error.message}`);
+                log(`🔍 Tipo do erro: ${error.name}`);
+                log(`📋 Detalhes: ${error.stack}`);
             }
         }
 
-        // Abrir livro
-        async function openBook() {
-            const bookCode = document.getElementById('bookCode').value.toUpperCase().trim();
-            
-            if (!bookDatabase[bookCode]) {
-                alert('Código do livro inválido!');
-                return;
-            }
-            
-            currentBook = bookDatabase[bookCode];
-            currentPage = 1;
-            
-            // Atualizar interface
-            document.getElementById('bookTitle').textContent = currentBook.title;
-            document.getElementById('bookCodeHeader').textContent = `(${bookCode})`;
-            document.getElementById('footerBookCode').textContent = bookCode;
-            document.getElementById('bookCodeOverlay').textContent = bookCode;
-            document.getElementById('totalPages').textContent = currentBook.pages;
-            
-            // Trocar telas
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('readerScreen').classList.remove('hidden');
-            document.getElementById('readerScreen').classList.add('flex');
-            
-            // Carregar PDF real
-            const pdfLoaded = await loadPDF(currentBook.file);
-            if (!pdfLoaded) {
-                backToLogin();
-            }
-        }
-
-        // Voltar para login
-        function backToLogin() {
-            document.getElementById('readerScreen').classList.add('hidden');
-            document.getElementById('readerScreen').classList.remove('flex');
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('bookCode').value = '';
-            currentBook = null;
-        }
-
-        // Navegação de páginas
-        function nextPage() {
-            if (currentBook && currentPage < currentBook.pages) {
-                currentPage++;
-                renderPage(currentPage);
-            }
-        }
-
-        function previousPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                renderPage(currentPage);
-            }
-        }
-
-        // Controle de zoom
-        function changeZoom(delta) {
-            zoom = Math.max(50, Math.min(200, zoom + delta));
-            document.getElementById('zoomLevel').textContent = zoom + '%';
-            document.getElementById('pdfContainer').style.transform = `scale(${zoom / 100})`;
-            
-            // Re-renderizar com novo zoom
-            if (pdfDoc) {
-                renderPage(currentPage);
-            }
-        }
-
-        // Atualizar informações da página
-        function updatePageInfo() {
-            if (!currentBook) return;
-            
-            document.getElementById('currentPage').textContent = currentPage;
-            document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${currentBook.pages}`;
-            
-            // Atualizar botões
-            const prevButton = document.getElementById('prevButton');
-            const nextButton = document.getElementById('nextButton');
-            
-            prevButton.disabled = currentPage === 1;
-            nextButton.disabled = currentPage === currentBook.pages;
-            
-            if (currentPage === 1) {
-                prevButton.classList.add('opacity-50', 'cursor-not-allowed');
-            } else {
-                prevButton.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-            
-            if (currentPage === currentBook.pages) {
-                nextButton.classList.add('opacity-50', 'cursor-not-allowed');
-            } else {
-                nextButton.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-        }
-
-        // Timer da sessão
-        function startSessionTimer() {
-            setInterval(() => {
-                if (sessionTime > 0) {
-                    sessionTime--;
-                    const hours = Math.floor(sessionTime / 60);
-                    const minutes = sessionTime % 60;
-                    const timeText = `${hours}h ${minutes}min`;
-                    
-                    document.getElementById('sessionTimer').textContent = timeText;
-                    document.getElementById('sessionWatermark').textContent = timeText;
-                    document.getElementById('footerTimer').textContent = `Auto-logout em ${timeText}`;
-                } else {
-                    alert('Sessão expirada!');
-                    backToLogin();
-                    sessionTime = 180; // Resetar
-                }
-            }, 60000); // Atualizar a cada minuto
-        }
-
-        // Proteções de segurança
-        document.addEventListener('keydown', function(e) {
-            // Bloquear Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+S, Ctrl+P, F12
-            if ((e.ctrlKey && ['a', 'c', 'v', 's', 'p'].includes(e.key.toLowerCase())) || e.key === 'F12') {
-                e.preventDefault();
-            }
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Iniciando teste de diagnóstico...');
+            log(`🌐 URL completa: ${window.location.href}`);
+            log(`🌐 URL base: ${window.location.origin}`);
+            log(`📂 Protocolo: ${window.location.protocol}`);
+            log(`🏠 Host: ${window.location.host}`);
+            log(`📍 Pathname: ${window.location.pathname}`);
+            createBookButtons();
         });
     </script>
 </body>
