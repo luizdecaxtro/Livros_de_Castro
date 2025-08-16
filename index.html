@@ -1,254 +1,107 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Livros de Castro - Teste Local</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Livros de Castro</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+    }
+    #login, #app {
+      margin-top: 100px;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    #pdfList {
+      margin: 20px auto;
+      max-width: 400px;
+    }
+    #pdfList li {
+      list-style: none;
+      padding: 10px;
+      background: #fff;
+      margin: 5px 0;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    iframe {
+      width: 90%;
+      height: 600px;
+      border: none;
+      margin-top: 20px;
+    }
+  </style>
 </head>
-<body class="bg-gray-100">
+<body>
+  <!-- Tela de Login -->
+  <div id="login">
+    <h2>🔒 Acesso Restrito</h2>
+    <p>Digite a senha para acessar os PDFs:</p>
+    <input type="password" id="senha" placeholder="Senha">
+    <br>
+    <button onclick="verificarSenha()">Entrar</button>
+    <p id="erro" style="color: red; display: none;">Senha incorreta!</p>
+  </div>
 
-    <!-- Tela de Login -->
-    <div id="loginScreen" class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-            <div class="text-center mb-8">
-                <div class="flex items-center justify-center mb-4">
-                    <i data-lucide="book-open" class="h-12 w-12 text-blue-600 mr-2"></i>
-                    <i data-lucide="github" class="h-10 w-10 text-gray-700"></i>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-900 mb-2">Livros de Castro</h1>
-                <p class="text-gray-600">Sistema de leitura protegida</p>
-                <div class="mt-2 px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                    🧪 VERSÃO TESTE LOCAL
-                </div>
-            </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Código do Livro
-                    </label>
-                    <input
-                        type="text"
-                        id="bookCode"
-                        placeholder="CASTRO001"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg uppercase"
-                        maxlength="9"
-                    />
-                </div>
-                
-                <button
-                    onclick="openBook()"
-                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-                >
-                    <i data-lucide="book-open" class="h-4 w-4 mr-2"></i>
-                    Testar Livro
-                </button>
-            </div>
-            
-            <div id="testResults" class="mt-4 hidden">
-                <div class="p-4 bg-green-50 border border-green-200 rounded-md">
-                    <h3 class="font-medium text-green-800 mb-2">✅ Resultado do Teste:</h3>
-                    <div id="testContent" class="text-sm text-green-700 space-y-1"></div>
-                </div>
-            </div>
-            
-            <div class="mt-6">
-                <div class="p-4 bg-blue-50 rounded-md">
-                    <p class="text-sm text-blue-800 font-medium mb-3 text-center">📚 Livros para Teste</p>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button class="bg-white p-2 rounded border cursor-pointer hover:bg-blue-50 text-xs" onclick="testBook('CASTRO001')">
-                            <div class="font-medium text-blue-900">CASTRO001</div>
-                            <div class="text-blue-700">Poemas</div>
-                        </button>
-                        <button class="bg-white p-2 rounded border cursor-pointer hover:bg-blue-50 text-xs" onclick="testBook('CASTRO002')">
-                            <div class="font-medium text-blue-900">CASTRO002</div>
-                            <div class="text-blue-700">Palavras que Libertam</div>
-                        </button>
-                        <button class="bg-white p-2 rounded border cursor-pointer hover:bg-blue-50 text-xs" onclick="testBook('CASTRO003')">
-                            <div class="font-medium text-blue-900">CASTRO003</div>
-                            <div class="text-blue-700">O Pentateuco</div>
-                        </button>
-                        <button class="bg-white p-2 rounded border cursor-pointer hover:bg-blue-50 text-xs" onclick="testBook('CASTRO004')">
-                            <div class="font-medium text-blue-900">CASTRO004</div>
-                            <div class="text-blue-700">IA</div>
-                        </button>
-                        <button class="bg-white p-2 rounded border cursor-pointer hover:bg-blue-50 text-xs" onclick="testBook('CASTRO005')">
-                            <div class="font-medium text-blue-900">CASTRO005</div>
-                            <div class="text-blue-700">Caminhos</div>
-                        </button>
-                        <button class="bg-white p-2 rounded border cursor-pointer hover:bg-blue-50 text-xs" onclick="testBook('CASTRO006')">
-                            <div class="font-medium text-blue-900">CASTRO006</div>
-                            <div class="text-blue-700">Mentores</div>
-                        </button>
-                        <button class="bg-white p-2 rounded border cursor-pointer hover:bg-blue-50 text-xs" onclick="testBook('CASTRO007')">
-                            <div class="font-medium text-blue-900">CASTRO007</div>
-                            <div class="text-blue-700">Elara</div>
-                        </button>
-                        <button class="bg-white p-2 rounded border cursor-pointer hover:bg-blue-50 text-xs" onclick="testBook('CASTRO008')">
-                            <div class="font-medium text-blue-900">CASTRO008</div>
-                            <div class="text-blue-700">Bem e Mal</div>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+  <!-- Aplicativo -->
+  <div id="app" style="display: none;">
+    <h2>📚 Livros de Castro</h2>
+    <ul id="pdfList"></ul>
+    <iframe id="pdfViewer"></iframe>
+  </div>
 
-    <!-- Tela do Leitor Simulado -->
-    <div id="readerScreen" class="min-h-screen bg-gray-900 flex-col hidden">
-        <header class="bg-gray-800 border-b border-gray-700">
-            <div class="px-4 py-3">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <button onclick="backToLogin()" class="text-gray-300 hover:text-white">
-                            <i data-lucide="chevron-left" class="h-5 w-5"></i>
-                        </button>
-                        <div class="flex items-center">
-                            <i data-lucide="lock" class="h-4 w-4 text-green-400 mr-2"></i>
-                            <span class="text-white font-medium" id="bookTitle">Carregando...</span>
-                            <span class="text-gray-400 text-sm ml-2" id="bookCodeHeader">(...)</span>
-                        </div>
-                    </div>
-                    <div class="bg-yellow-500 text-black px-3 py-1 rounded text-xs font-bold">
-                        🧪 SIMULAÇÃO LOCAL
-                    </div>
-                </div>
-            </div>
-        </header>
-        
-        <main class="flex-1 flex items-center justify-center p-8">
-            <div class="max-w-2xl bg-white rounded-lg shadow-xl p-8 text-center">
-                <div class="mb-6">
-                    <i data-lucide="check-circle" class="h-16 w-16 text-green-500 mx-auto mb-4"></i>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">✅ Sistema Funcionando!</h2>
-                    <p class="text-gray-600">O livro seria carregado com sucesso.</p>
-                </div>
-                
-                <div class="bg-gray-50 rounded-lg p-6 mb-6">
-                    <h3 class="font-semibold text-gray-900 mb-3">📖 Informações do Livro:</h3>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div class="bg-white p-3 rounded">
-                            <div class="text-gray-500">Código</div>
-                            <div class="font-mono font-bold" id="simulatedCode">CASTRO001</div>
-                        </div>
-                        <div class="bg-white p-3 rounded">
-                            <div class="text-gray-500">Título</div>
-                            <div class="font-bold" id="simulatedTitle">Poemas</div>
-                        </div>
-                        <div class="bg-white p-3 rounded">
-                            <div class="text-gray-500">Arquivo</div>
-                            <div class="font-mono text-xs" id="simulatedFile">Livros/CASTRO001.pdf</div>
-                        </div>
-                        <div class="bg-white p-3 rounded">
-                            <div class="text-gray-500">Status</div>
-                            <div class="text-green-600 font-bold">✅ ENCONTRADO</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-blue-50 rounded-lg p-4 mb-6">
-                    <h4 class="font-medium text-blue-900 mb-2">🔧 Para o GitHub Pages funcionar:</h4>
-                    <div class="text-sm text-blue-800 text-left space-y-1">
-                        <div>1. ✅ Códigos dos livros corrigidos</div>
-                        <div>2. ✅ Nomes dos arquivos corretos</div>
-                        <div>3. ⏳ Aguardar propagação do GitHub Pages (1-5min)</div>
-                        <div>4. 🌐 Testar URL: <span class="font-mono bg-blue-200 px-1 rounded">luizdecaxtro.github.io/Livros_de_Castro</span></div>
-                    </div>
-                </div>
-                
-                <button onclick="backToLogin()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                    <i data-lucide="arrow-left" class="h-4 w-4 mr-2 inline"></i>
-                    Testar Outro Livro
-                </button>
-            </div>
-        </main>
-    </div>
+  <script>
+    // Defina a senha correta aqui
+    const SENHA_CORRETA = "1234";  
 
-    <script>
-        // Base de dados dos livros - VERSÃO TESTE
-        const bookDatabase = {
-            'CASTRO001': { title: 'Poemas', pages: 120, file: 'Livros/CASTRO001.pdf' },
-            'CASTRO002': { title: 'Palavras que Libertam', pages: 89, file: 'Livros/CASTRO002.pdf' },
-            'CASTRO003': { title: 'O Pentateuco', pages: 345, file: 'Livros/CASTRO003.pdf' },
-            'CASTRO004': { title: 'O Poder da Inteligência Artificial', pages: 198, file: 'Livros/CASTRO004.pdf' },
-            'CASTRO005': { title: 'Os Caminhos do Coração', pages: 156, file: 'Livros/CASTRO005.pdf' },
-            'CASTRO006': { title: 'Mentores Espirituais', pages: 203, file: 'Livros/CASTRO006.pdf' },
-            'CASTRO007': { title: 'Elara, e as Conexões Para a Liberdade', pages: 267, file: 'Livros/CASTRO007.pdf' },
-            'CASTRO008': { title: 'O Bem e o Mal', pages: 134, file: 'Livros/CASTRO008.pdf' }
-        };
+    function verificarSenha() {
+      const senha = document.getElementById("senha").value;
+      if (senha === SENHA_CORRETA) {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("app").style.display = "block";
+        carregarPDFs();
+      } else {
+        document.getElementById("erro").style.display = "block";
+      }
+    }
 
-        let currentBook = null;
+    function carregarPDFs() {
+      const pdfs = [
+        "CASTRO0001.pdf",
+        "CASTRO0002.pdf",
+        "CASTRO0003.pdf",
+        "CASTRO0004.pdf",
+        "CASTRO0005.pdf",
+        "CASTRO0006.pdf",
+        "CASTRO0007.pdf",
+        "CASTRO0008.pdf"
+      ];
+      const lista = document.getElementById("pdfList");
+      lista.innerHTML = "";
+      pdfs.forEach(pdf => {
+        const li = document.createElement("li");
+        li.textContent = pdf;
+        li.onclick = () => abrirPDF(pdf);
+        lista.appendChild(li);
+      });
+    }
 
-        // Inicializar página
-        document.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
-        });
-
-        // Testar livro específico
-        function testBook(code) {
-            document.getElementById('bookCode').value = code;
-            
-            // Mostrar resultados do teste
-            const book = bookDatabase[code];
-            if (book) {
-                const testResults = document.getElementById('testResults');
-                const testContent = document.getElementById('testContent');
-                
-                testContent.innerHTML = `
-                    <div><strong>Código:</strong> ${code}</div>
-                    <div><strong>Título:</strong> ${book.title}</div>
-                    <div><strong>Arquivo:</strong> ${book.file}</div>
-                    <div><strong>Páginas:</strong> ${book.pages}</div>
-                    <div class="mt-2 text-green-600"><strong>✅ Mapeamento correto!</strong></div>
-                `;
-                
-                testResults.classList.remove('hidden');
-                
-                setTimeout(() => {
-                    openBook();
-                }, 1500);
-            }
-        }
-
-        // Abrir livro (simulado)
-        async function openBook() {
-            const bookCode = document.getElementById('bookCode').value.toUpperCase().trim();
-            
-            if (!bookDatabase[bookCode]) {
-                alert('❌ Código do livro inválido! Use: CASTRO001 a CASTRO008');
-                return;
-            }
-            
-            currentBook = bookDatabase[bookCode];
-            
-            // Simular carregamento
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('readerScreen').classList.remove('hidden');
-            document.getElementById('readerScreen').classList.add('flex');
-            
-            // Atualizar informações simuladas
-            document.getElementById('bookTitle').textContent = currentBook.title;
-            document.getElementById('bookCodeHeader').textContent = `(${bookCode})`;
-            document.getElementById('simulatedCode').textContent = bookCode;
-            document.getElementById('simulatedTitle').textContent = currentBook.title;
-            document.getElementById('simulatedFile').textContent = currentBook.file;
-            
-            console.log(`✅ TESTE: ${bookCode} - ${currentBook.title}`);
-            console.log(`📂 Arquivo: ${currentBook.file}`);
-            console.log(`📄 Páginas: ${currentBook.pages}`);
-        }
-
-        // Voltar para login
-        function backToLogin() {
-            document.getElementById('readerScreen').classList.add('hidden');
-            document.getElementById('readerScreen').classList.remove('flex');
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('bookCode').value = '';
-            document.getElementById('testResults').classList.add('hidden');
-            currentBook = null;
-        }
-    </script>
+    function abrirPDF(arquivo) {
+      document.getElementById("pdfViewer").src = arquivo;
+    }
+  </script>
 </body>
 </html>
