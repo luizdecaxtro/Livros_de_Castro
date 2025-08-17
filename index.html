@@ -26,13 +26,6 @@
             color: #333;
             text-align: center;
         }
-        #pdf-viewer {
-            width: 100%;
-            height: 70vh;
-            border: 1px solid #ccc;
-            margin-top: 20px;
-            display: none;
-        }
         #file-list {
             list-style: none;
             padding: 0;
@@ -45,63 +38,124 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            font-weight: bold;
+            color: #0056b3;
         }
         #file-list li:hover {
             background-color: #d8e0e7;
         }
-        #file-list li span {
-            font-weight: bold;
-            color: #0056b3;
+        /* Estilos do visualizador PDF.js */
+        #pdf-main-container {
+            width: 100%;
+            height: 70vh;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        #pdf-viewer-container {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            border: 1px solid #ccc;
+            background-color: #e4e4e4;
+        }
+        .pdf-page {
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            margin: 10px auto;
+            display: block;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Livros de Castro</h1>
-        <p>Selecione um arquivo PDF para visualizar.</p>
+        <p id="message">Selecione um arquivo PDF para visualizar.</p>
         <ul id="file-list">
             </ul>
-        <iframe id="pdf-viewer" frameborder="0"></iframe>
     </div>
 
-    <script>
-        const repoUrl = 'https://api.github.com/repos/luizdecaxtro/Livros_de_Castro/contents/Livros';
-        const fileList = document.getElementById('file-list');
-        const pdfViewer = document.getElementById('pdf-viewer');
+    <div id="pdf-main-container">
+        <div id="pdf-viewer-container">
+            </div>
+    </div>
 
-        // Função para buscar os arquivos PDF no GitHub
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+    <script>
+        const repoUrl = 'https://api.github.com/repos/luizdecaxtro/livrosdecastro/contents/Livros';
+        const fileList = document.getElementById('file-list');
+        const pdfContainer = document.getElementById('pdf-main-container');
+        const pdfViewer = document.getElementById('pdf-viewer-container');
+        const message = document.getElementById('message');
+
+        // Configura o worker do PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // Função para buscar e listar os PDFs
         async function fetchPdfFiles() {
             try {
                 const response = await fetch(repoUrl);
                 const data = await response.json();
                 
-                // Filtra apenas os arquivos PDF
                 const pdfFiles = data.filter(file => file.name.endsWith('.pdf'));
 
                 if (pdfFiles.length === 0) {
-                    fileList.innerHTML = '<li>Nenhum arquivo PDF encontrado.</li>';
+                    message.textContent = 'Nenhum arquivo PDF encontrado.';
                     return;
                 }
 
                 pdfFiles.forEach(file => {
                     const li = document.createElement('li');
-                    li.innerHTML = `<span>${file.name}</span>`;
+                    li.textContent = file.name;
                     li.addEventListener('click', () => {
                         loadPdf(file.download_url);
                     });
                     fileList.appendChild(li);
                 });
+
             } catch (error) {
-                fileList.innerHTML = '<li>Erro ao carregar os arquivos. Verifique o caminho do repositório.</li>';
+                message.textContent = 'Erro ao carregar os arquivos. Verifique o caminho do repositório.';
                 console.error('Erro:', error);
             }
         }
 
-        // Função para carregar o PDF no iframe
-        function loadPdf(pdfUrl) {
-            pdfViewer.src = pdfUrl;
-            pdfViewer.style.display = 'block';
-            fileList.style.display = 'none'; // Esconde a lista para mostrar o visualizador
+        // Função para carregar o PDF com PDF.js
+        async function loadPdf(pdfUrl) {
+            pdfContainer.style.display = 'flex';
+            fileList.style.display = 'none';
+            message.textContent = 'Carregando...';
+
+            // Limpa o visualizador anterior
+            pdfViewer.innerHTML = '';
+
+            try {
+                const loadingTask = pdfjsLib.getDocument(pdfUrl);
+                const pdf = await loadingTask.promise;
+
+                // Loop para renderizar cada página
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const scale = 1.5;
+                    const viewport = page.getViewport({ scale });
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'pdf-page';
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport,
+                    };
+                    await page.render(renderContext).promise;
+                    pdfViewer.appendChild(canvas);
+                }
+                message.textContent = ''; // Limpa a mensagem de "Carregando"
+            } catch (error) {
+                message.textContent = 'Erro ao carregar o PDF. Tente novamente mais tarde.';
+                console.error('Erro:', error);
+            }
         }
 
         // Chama a função para buscar os arquivos quando a página carrega
