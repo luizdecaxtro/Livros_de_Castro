@@ -1,107 +1,111 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Livros de Castro</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-      background: #f4f4f4;
-    }
-    #login, #app {
-      margin-top: 100px;
-    }
-    input {
-      padding: 10px;
-      font-size: 16px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-    #pdfList {
-      margin: 20px auto;
-      max-width: 400px;
-    }
-    #pdfList li {
-      list-style: none;
-      padding: 10px;
-      background: #fff;
-      margin: 5px 0;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    iframe {
-      width: 90%;
-      height: 600px;
-      border: none;
-      margin-top: 20px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Livros</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        #pdf-viewer {
+            width: 100%;
+            height: 70vh;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+            display: none;
+        }
+        #file-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        #file-list li {
+            background-color: #e9ecef;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #file-list li:hover {
+            background-color: #d8e0e7;
+        }
+        #file-list li span {
+            font-weight: bold;
+            color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-  <!-- Tela de Login -->
-  <div id="login">
-    <h2>🔒 Acesso Restrito</h2>
-    <p>Digite a senha para acessar os PDFs:</p>
-    <input type="password" id="senha" placeholder="Senha">
-    <br>
-    <button onclick="verificarSenha()">Entrar</button>
-    <p id="erro" style="color: red; display: none;">Senha incorreta!</p>
-  </div>
+    <div class="container">
+        <h1>Livros de Castro</h1>
+        <p>Selecione um arquivo PDF para visualizar.</p>
+        <ul id="file-list">
+            </ul>
+        <iframe id="pdf-viewer" frameborder="0"></iframe>
+    </div>
 
-  <!-- Aplicativo -->
-  <div id="app" style="display: none;">
-    <h2>📚 Livros de Castro</h2>
-    <ul id="pdfList"></ul>
-    <iframe id="pdfViewer"></iframe>
-  </div>
+    <script>
+        const repoUrl = 'https://api.github.com/repos/luizdecaxtro/livrosdecastro/contents/Livros';
+        const fileList = document.getElementById('file-list');
+        const pdfViewer = document.getElementById('pdf-viewer');
 
-  <script>
-    // Defina a senha correta aqui
-    const SENHA_CORRETA = "1234";  
+        // Função para buscar os arquivos PDF no GitHub
+        async function fetchPdfFiles() {
+            try {
+                const response = await fetch(repoUrl);
+                const data = await response.json();
+                
+                // Filtra apenas os arquivos PDF
+                const pdfFiles = data.filter(file => file.name.endsWith('.pdf'));
 
-    function verificarSenha() {
-      const senha = document.getElementById("senha").value;
-      if (senha === SENHA_CORRETA) {
-        document.getElementById("login").style.display = "none";
-        document.getElementById("app").style.display = "block";
-        carregarPDFs();
-      } else {
-        document.getElementById("erro").style.display = "block";
-      }
-    }
+                if (pdfFiles.length === 0) {
+                    fileList.innerHTML = '<li>Nenhum arquivo PDF encontrado.</li>';
+                    return;
+                }
 
-    function carregarPDFs() {
-      const pdfs = [
-        "CASTRO0001.pdf",
-        "CASTRO0002.pdf",
-        "CASTRO0003.pdf",
-        "CASTRO0004.pdf",
-        "CASTRO0005.pdf",
-        "CASTRO0006.pdf",
-        "CASTRO0007.pdf",
-        "CASTRO0008.pdf"
-      ];
-      const lista = document.getElementById("pdfList");
-      lista.innerHTML = "";
-      pdfs.forEach(pdf => {
-        const li = document.createElement("li");
-        li.textContent = pdf;
-        li.onclick = () => abrirPDF(pdf);
-        lista.appendChild(li);
-      });
-    }
+                pdfFiles.forEach(file => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>${file.name}</span>`;
+                    li.addEventListener('click', () => {
+                        loadPdf(file.download_url);
+                    });
+                    fileList.appendChild(li);
+                });
+            } catch (error) {
+                fileList.innerHTML = '<li>Erro ao carregar os arquivos. Verifique o caminho do repositório.</li>';
+                console.error('Erro:', error);
+            }
+        }
 
-    function abrirPDF(arquivo) {
-      document.getElementById("pdfViewer").src = arquivo;
-    }
-  </script>
+        // Função para carregar o PDF no iframe
+        function loadPdf(pdfUrl) {
+            pdfViewer.src = pdfUrl;
+            pdfViewer.style.display = 'block';
+            fileList.style.display = 'none'; // Esconde a lista para mostrar o visualizador
+        }
+
+        // Chama a função para buscar os arquivos quando a página carrega
+        window.onload = fetchPdfFiles;
+    </script>
 </body>
 </html>
